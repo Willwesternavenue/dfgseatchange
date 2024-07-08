@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大富豪テーブル替えシステム</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #444;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input[type="number"] {
+            padding: 8px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            display: block;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #tableCounts {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #results {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>大富豪テーブル替えシステム</h1>
+    <form id="participantForm">
+        <input type="number" id="participants" placeholder="参加人数を入力してください">
+        <button type="button" onclick="generateCSV()">CSV出力</button>
+    </form>
+    <div id="tableCounts"></div>
+    <div id="results"></div>
+
+    <script>
+        function generateCSV() {
+            const participants = parseInt(document.getElementById('participants').value);
+            let fourPersonTables = Math.floor(participants / 4);
+            let remainder = participants % 4;
+            let threePersonTables = 0;
+
+            // Adjust the number of tables based on remainder
+            if (remainder === 1) {
+                if (fourPersonTables >= 2) {
+                    fourPersonTables -= 2;
+                    threePersonTables = 3;
+                } else {
+                    threePersonTables = 1;
+                }
+            } else if (remainder === 2) {
+                if (fourPersonTables >= 1) {
+                    fourPersonTables -= 1;
+                    threePersonTables = 2;
+                } else {
+                    threePersonTables = 1;
+                }
+            } else if (remainder === 3) {
+                threePersonTables = 1;
+            }
+
+            const totalTables = fourPersonTables + threePersonTables;
+            let assignments = [];
+            let participantNumber = 1;
+
+            // Assign participants to four-person tables
+            for (let i = 1; i <= fourPersonTables; i++) {
+                for (let j = 1; j <= 4; j++) {
+                    assignments.push([participantNumber, `${i}-${['a', 'b', 'c', 'd'][j-1]}`]);
+                    participantNumber++;
+                }
+            }
+
+            // Assign participants to three-person tables
+            for (let i = fourPersonTables + 1; i <= totalTables; i++) {
+                for (let j = 1; j <= 3; j++) {
+                    assignments.push([participantNumber, `${i}-${['a', 'b', 'c'][j-1]}`]);
+                    participantNumber++;
+                }
+            }
+
+            // Shuffle the assignments randomly
+            assignments.sort(() => Math.random() - 0.5);
+
+            // Display table counts
+            document.getElementById('tableCounts').innerHTML = `<p>4人テーブル数: ${fourPersonTables}</p><p>3人テーブル数: ${threePersonTables}</p>`;
+
+            // Create CSV content
+            let csvContent = "data:text/csv;charset=utf-8,Participant,Seat\n";
+            assignments.forEach(function(rowArray) {
+                let row = rowArray.join(",");
+                csvContent += row + "\n";
+            });
+
+            // Create a link to download the CSV
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "table_assignments.csv");
+            document.body.appendChild(link); // Required for FF
+
+            link.click(); // This will download the CSV file
+        }
+    </script>
+</body>
+</html>
